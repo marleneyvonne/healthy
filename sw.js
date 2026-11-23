@@ -1,9 +1,9 @@
 // Service Worker: speichert nur den App-Code für die Offline-Nutzung.
 // Deine Gesundheitsdaten werden hier NICHT gespeichert oder übertragen.
-const CACHE = 'zyklus-v1';
+const CACHE = 'healthy-v4';
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'])));
   self.skipWaiting();
 });
 

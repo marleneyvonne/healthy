@@ -6,11 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Zyklus">
+<meta name="apple-mobile-web-app-title" content="Healthy">
 <meta name="theme-color" content="#f7f3f0">
 <!-- Sicherheitsnetz: Die Seite darf keinerlei Netzwerkverbindungen aufbauen (connect-src 'none'). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'">
-<title>Zyklus-Tagebuch</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.6%204.2%207.8%202.2M14.4%204.2l1.8-2%22%20fill%3D%22none%22%20stroke%3D%22%231d1a1b%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%226.6%22%20r%3D%223.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2214.2%22%20r%3D%227.6%22%20fill%3D%22%23d7263d%22/%3E%3Cpath%20d%3D%22M12%207.2v14.6%22%20stroke%3D%22%231d1a1b%22%20stroke-width%3D%221.2%22/%3E%3Ccircle%20cx%3D%228.6%22%20cy%3D%2211.6%22%20r%3D%221.5%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2215.4%22%20cy%3D%2211.6%22%20r%3D%221.5%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%227.8%22%20cy%3D%2216.2%22%20r%3D%221.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2216.2%22%20cy%3D%2216.2%22%20r%3D%221.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2219.4%22%20r%3D%221%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2219.4%22%20r%3D%221%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2210.6%22%20cy%3D%225.6%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2213.4%22%20cy%3D%225.6%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
+<title>Healthy</title>
 <style>
 :root{--bg:#f7f3f0;--card:#fff;--ink:#2a2125;--muted:#85767c;--line:#ebe2dd;--accent:#a3335a;--accent-ink:#fff;--soft:#f6e2e9;--mid:#e3a6bb;--period:#c23f69;--spot:#efbccb;--danger:#b3261e;color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root{--bg:#151113;--card:#211b1e;--ink:#f2eaed;--muted:#a8999f;--line:#342b2f;--accent:#e57c9f;--accent-ink:#1b1215;--soft:#3a2630;--mid:#7e4459;--period:#de6990;--spot:#6e3c4d;--danger:#ff8a80}}
@@ -33,8 +36,8 @@ svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 /* Sperrbildschirm */
 .lock{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
 .lock-box{width:100%;max-width:380px;text-align:center}
-.logo{width:64px;height:64px;border-radius:20px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin:0 auto 18px}
-.logo svg{width:32px;height:32px}
+.logo{width:64px;height:64px;border-radius:20px;background:var(--soft);display:grid;place-items:center;margin:0 auto 18px}
+.logo svg{width:40px;height:40px}
 .lock h1{font-size:26px;margin-bottom:8px}
 .lock form{display:grid;gap:10px;margin-top:22px;text-align:left}
 .warn{font-size:13px;background:var(--soft);border-radius:12px;padding:10px 12px}
@@ -67,6 +70,13 @@ main{max-width:560px;margin:0 auto;padding:14px 16px calc(100px + env(safe-area-
 .chip.lv2{background:var(--mid);border-color:var(--mid)}
 .chip .lv{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
 .chip.add{border-style:dashed;color:var(--muted)}
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.scale .chip{padding:8px 0;justify-content:center;font-size:14px}
+.scale-l{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.inline{display:flex;align-items:center;gap:10px;margin-top:12px}
+.inline input{width:110px;flex:none}
+.inline span{color:var(--muted);font-size:14px}
+.stats.two{grid-template-columns:repeat(2,1fr)}
 .row{display:flex;gap:10px;align-items:center}
 .row>*{flex:1}
 
@@ -135,7 +145,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
 
 <div id="app" hidden>
   <header class="top">
-    <div class="brand">Zyklus-Tagebuch</div>
+    <div class="brand">Healthy</div>
     <button class="icon-btn" data-act="lock" aria-label="Sperren" title="Sperren">
       <svg class="i" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
     </button>
@@ -147,7 +157,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
     <section id="v-mehr" class="view" hidden></section>
   </main>
   <nav class="tabs">
-    <button data-view="tag"><svg class="i" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg>Eintrag</button>
+    <button data-view="tag"><svg class="i" viewBox="0 0 24 24"><path d="M10 5 8.3 3M14 5l1.7-2"/><path d="M9.2 7.6a2.8 2.8 0 0 1 5.6 0"/><circle cx="12" cy="14.2" r="6.8"/><path d="M12 7.4v13.6"/><circle cx="9" cy="12.4" r=".9" fill="currentColor"/><circle cx="15" cy="12.4" r=".9" fill="currentColor"/><circle cx="9.2" cy="16.6" r=".9" fill="currentColor"/><circle cx="14.8" cy="16.6" r=".9" fill="currentColor"/></svg>Eintrag</button>
     <button data-view="kal"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Kalender</button>
     <button data-view="aus"><svg class="i" viewBox="0 0 24 24"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg>Auswertung</button>
     <button data-view="mehr"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Mehr</button>
@@ -160,19 +170,22 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
 <script>
 "use strict";
 /* =========================================================
-   Zyklus-Tagebuch – alles bleibt auf diesem Gerät.
+   Healthy – alles bleibt auf diesem Gerät.
    Speicher: IndexedDB, verschlüsselt mit AES-GCM (256 Bit).
    Schlüssel: aus deinem Passwort per PBKDF2-SHA256 abgeleitet.
    Keine Server, keine Analyse, keine externen Bibliotheken.
    ========================================================= */
 
 const ITER = 310000;
-const DB_NAME = 'zyklus-tagebuch', STORE = 'vault';
+const DB_NAME = 'healthy', STORE = 'vault';
 
 const SYMPTOMS = ['Krämpfe','Kopfschmerzen','Brustspannen','Blähungen','Rückenschmerzen','Übelkeit','Müdigkeit','Akne','Heißhunger','Schlafprobleme','Stimmungsschwankungen','Durchfall','Verstopfung','Schwindel'];
 const FLOWS = [['','Keine'],['schmier','Schmierblutung'],['leicht','Leicht'],['mittel','Mittel'],['stark','Stark']];
 const MOODS = [['gut','😊 Gut'],['ok','🙂 Okay'],['muede','😴 Müde'],['gereizt','😤 Gereizt'],['traurig','😢 Traurig'],['aengstlich','😟 Ängstlich']];
 const LV = ['', 'leicht', 'mittel', 'stark'];
+const SLEEPQ = ['', 'Schlecht', 'Mäßig', 'Gut', 'Sehr gut'];
+const ENERGY = ['', 'Erschöpft', 'Niedrig', 'Mittel', 'Gut', 'Voller Energie'];
+const MOVES = ['Spaziergang','Laufen','Radfahren','Krafttraining','Yoga','Schwimmen','Tanzen'];
 
 const S = { key:null, salt:null, data:null, date:null, month:null, view:'tag', lastAct:Date.now(), hiddenAt:0 };
 
@@ -225,14 +238,22 @@ function normalize(d){
   d.version = 1;
   d.entries = d.entries || {};
   d.customSymptoms = d.customSymptoms || [];
+  d.customMoves = d.customMoves || [];
+  d.meds = d.meds || [];
   d.settings = Object.assign({ autoLock:5 }, d.settings || {});
   return d;
 }
-const blankEntry = () => ({ flow:'', sym:{}, mood:[], temp:'', note:'' });
-function getEntry(d){ const e = S.data.entries[d] || {}; return { ...blankEntry(), ...e, sym:{...(e.sym||{})}, mood:[...(e.mood||[])] }; }
+const blankEntry = () => ({ flow:'', sym:{}, mood:[], note:'', sleepH:'', sleepQ:0, energy:0, pain:'', move:[], moveMin:'', meds:[] });
+function getEntry(d){ const e = S.data.entries[d] || {}; return { ...blankEntry(), ...e, sym:{...(e.sym||{})}, mood:[...(e.mood||[])], move:[...(e.move||[])], meds:[...(e.meds||[])] }; }
 function setEntry(d, patch){ S.data.entries[d] = { ...getEntry(d), ...patch, u:Date.now() }; save(); }
-const hasContent = e => e && (e.flow || Object.keys(e.sym||{}).length || (e.mood||[]).length || e.temp || e.note);
-const allSymptoms = () => [...SYMPTOMS, ...S.data.customSymptoms.filter(s=>!SYMPTOMS.includes(s))];
+const hasContent = e => e && (e.flow || hasHealth(e));
+const hasHealth = e => e && (Object.keys(e.sym||{}).length || (e.mood||[]).length || e.note || e.sleepH || e.sleepQ || e.energy || e.pain !== undefined && e.pain !== '' || (e.move||[]).length || e.moveMin || (e.meds||[]).length);
+const uniq = a => [...new Set(a)];
+const allSymptoms = () => uniq([...SYMPTOMS, ...S.data.customSymptoms]);
+const allMoves = e => uniq([...MOVES, ...S.data.customMoves, ...(e ? e.move : [])]);
+const allMeds = e => uniq([...S.data.meds, ...(e ? e.meds : [])]);
+const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
+const deNum = (n, k=1) => n.toLocaleString('de-DE', { maximumFractionDigits:k });
 
 let saveTimer;
 function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 300); }
@@ -304,7 +325,7 @@ const askText = (title, ph) => dialog(`<h3>${title}</h3><input type="text" id="m
 const confirmBox = (title, text, okLabel) => { dialog.ok = okLabel; return dialog(`<h3>${title}</h3><p class="muted small">${text}</p>`); };
 
 /* ---------- Sperren / Entsperren ---------- */
-const LOGO = '<div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg></div>';
+const LOGO = '<div class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.6 4.2 7.8 2.2M14.4 4.2l1.8-2" fill="none" stroke="#1d1a1b" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="6.6" r="3.3" fill="#1d1a1b"/><circle cx="12" cy="14.2" r="7.6" fill="#d7263d"/><path d="M12 7.2v14.6" stroke="#1d1a1b" stroke-width="1.2"/><circle cx="8.6" cy="11.6" r="1.5" fill="#1d1a1b"/><circle cx="15.4" cy="11.6" r="1.5" fill="#1d1a1b"/><circle cx="7.8" cy="16.2" r="1.3" fill="#1d1a1b"/><circle cx="16.2" cy="16.2" r="1.3" fill="#1d1a1b"/><circle cx="10" cy="19.4" r="1" fill="#1d1a1b"/><circle cx="14" cy="19.4" r="1" fill="#1d1a1b"/><circle cx="10.6" cy="5.6" r=".7" fill="#fff"/><circle cx="13.4" cy="5.6" r=".7" fill="#fff"/></svg></div>';
 
 async function showLock(){
   $('#app').hidden = true;
@@ -316,7 +337,7 @@ async function showLock(){
   let has = false; try { has = !!(await idbGet('vault')); } catch(e){}
   if (!has){
     L.innerHTML = `<div class="lock-box">${LOGO}
-      <h1>Zyklus-Tagebuch</h1>
+      <h1>Healthy</h1>
       <p class="muted">Deine Daten bleiben nur auf diesem Gerät – verschlüsselt mit deinem Passwort.</p>
       <form id="setup">
         <input type="password" id="pw1" autocomplete="new-password" placeholder="Passwort (mind. 8 Zeichen)" required>
@@ -440,9 +461,27 @@ function renderTag(){
     <div class="card"><h3>Stimmung</h3><div class="chips">
       ${MOODS.map(([v,l]) => `<button class="chip ${e.mood.includes(v)?'on':''}" data-mood="${v}">${l}</button>`).join('')}
     </div></div>
-    <div class="card"><h3>Basaltemperatur <span class="hint">optional, in °C</span></h3>
-      <input type="text" inputmode="decimal" id="temp" placeholder="z. B. 36,55" value="${esc(String(e.temp).replace('.',','))}">
+    <div class="card"><h3>Energie</h3><div class="chips">
+      ${ENERGY.slice(1).map((l,i) => `<button class="chip ${e.energy===i+1?'on':''}" data-energy="${i+1}">${l}</button>`).join('')}
+    </div></div>
+    <div class="card"><h3>Schlaf <span class="hint">letzte Nacht</span></h3><div class="chips">
+      ${SLEEPQ.slice(1).map((l,i) => `<button class="chip ${e.sleepQ===i+1?'on':''}" data-sq="${i+1}">${l}</button>`).join('')}
+      </div>
+      <div class="inline"><input type="text" inputmode="decimal" id="sleepH" placeholder="z. B. 7,5" value="${esc(String(e.sleepH).replace('.',','))}"><span>Stunden</span></div>
     </div>
+    <div class="card"><h3>Schmerzen <span class="hint">0 = keine, 10 = unerträglich</span></h3>
+      <div class="scale">${Array.from({length:11}, (_,i) => `<button class="chip ${e.pain===i?'on':''}" data-pain="${i}" aria-label="Schmerz ${i}">${i}</button>`).join('')}</div>
+    </div>
+    <div class="card"><h3>Bewegung</h3><div class="chips">
+      ${allMoves(e).map(m => `<button class="chip ${e.move.includes(m)?'on':''}" data-move="${esc(m)}">${esc(m)}</button>`).join('')}
+      <button class="chip add" data-act="addmove">+ Eigene</button>
+      </div>
+      <div class="inline"><input type="text" inputmode="numeric" id="moveMin" placeholder="z. B. 30" value="${esc(e.moveMin)}"><span>Minuten insgesamt</span></div>
+    </div>
+    <div class="card"><h3>Medikamente <span class="hint">antippen = genommen</span></h3><div class="chips">
+      ${allMeds(e).map(m => `<button class="chip ${e.meds.includes(m)?'on':''}" data-med="${esc(m)}">${e.meds.includes(m)?'✓ ':''}${esc(m)}</button>`).join('')}
+      <button class="chip add" data-act="addmed">+ Medikament</button>
+    </div></div>
     <div class="card"><h3>Notiz</h3><textarea id="note" rows="3" placeholder="Was war heute los?">${esc(e.note)}</textarea></div>
   `;
 }
@@ -458,7 +497,7 @@ function renderKal(){
     const k = `${y}-${pad(mo+1)}-${pad(dd)}`, e = E[k] || {};
     const cls = ['day'];
     if (isPeriod(e.flow)) cls.push('period'); else if (e.flow==='schmier') cls.push('spot'); else if (pred.has(k)) cls.push('pred');
-    if (Object.keys(e.sym||{}).length) cls.push('dot');
+    if (hasHealth(e)) cls.push('dot');
     if (k === t) cls.push('today');
     if (k > t) cls.push('future');
     cells += k > t ? `<div class="${cls.join(' ')}">${dd}</div>` : `<button class="${cls.join(' ')}" data-day="${k}">${dd}</button>`;
@@ -476,7 +515,7 @@ function renderKal(){
         <span><i class="sw" style="background:var(--period)"></i>Periode</span>
         <span><i class="sw" style="background:var(--spot)"></i>Schmierblutung</span>
         <span><i class="sw" style="border:2px dashed var(--period)"></i>Prognose</span>
-        <span>• Symptome</span>
+        <span>• Eintrag</span>
       </div>
     </div>
     ${isCur ? '' : `<button class="link center" data-act="mtoday">Zum aktuellen Monat</button>`}
@@ -504,6 +543,30 @@ function renderAus(){
   }
   const top = Object.entries(stats).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
 
+  // Letzte 30 Tage – allgemeine Gesundheit
+  const last = Array.from({length:30}, (_,i) => E[addDays(t, -i)]).filter(Boolean);
+  const avgOf = (arr) => arr.length ? mean(arr) : null;
+  const sleepH = last.map(e => num(e.sleepH)).filter(n => n !== null && n > 0 && n <= 24);
+  const energy = last.map(e => e.energy).filter(Boolean);
+  const pains = last.map(e => e.pain).filter(p => typeof p === 'number');
+  const activeDays = last.filter(e => (e.move||[]).length || num(e.moveMin) > 0).length;
+  const minutes = last.reduce((sum,e) => sum + (num(e.moveMin) || 0), 0);
+  const medCount = {};
+  for (const e of last) for (const m of e.meds||[]) medCount[m] = (medCount[m]||0) + 1;
+  const sAvg = avgOf(sleepH), eAvg = avgOf(energy), pAvg = avgOf(pains);
+  const health = `
+    <div class="card"><h3>Gesundheit <span class="hint">letzte 30 Tage</span></h3>
+      <div class="stats two" style="margin:0">
+        <div class="stat"><b>${sAvg!==null?deNum(sAvg)+' h':'–'}</b><span>Ø Schlaf${sleepH.length?' ('+sleepH.length+' Nächte)':''}</span></div>
+        <div class="stat"><b>${eAvg!==null?deNum(eAvg)+' / 5':'–'}</b><span>Ø Energie</span></div>
+        <div class="stat"><b>${pains.filter(p=>p>0).length}</b><span>Tage mit Schmerzen${pAvg!==null?' · Ø '+deNum(pAvg):''}</span></div>
+        <div class="stat"><b>${activeDays}</b><span>aktive Tage${minutes?' · '+deNum(minutes,0)+' Min.':''}</span></div>
+      </div>
+    </div>
+    <div class="card"><h3>Medikamente <span class="hint">letzte 30 Tage</span></h3>
+      ${Object.keys(medCount).length ? Object.entries(medCount).sort((a,b)=>b[1]-a[1]).map(([m,n]) => `<div class="symrow"><span>${esc(m)}</span><span class="muted">an ${n} ${n===1?'Tag':'Tagen'}</span></div>`).join('') : '<p class="muted small">Noch keine Einnahmen eingetragen.</p>'}
+    </div>`;
+
   $('#v-aus').innerHTML = `
     <div class="stats">
       <div class="stat"><b>${c.valid.length?c.avgCycle:'–'}</b><span>Ø Zykluslänge</span></div>
@@ -513,12 +576,17 @@ function renderAus(){
     <div class="card"><h3>Zyklen <span class="hint">rot = Periode</span></h3>
       ${rows.length ? rows.join('') : '<p class="muted small">Noch keine Periode eingetragen.</p>'}
     </div>
+    ${health}
     <div class="card"><h3>Häufigste Symptome</h3>
       ${top.length ? top.map(([s,v]) => `<div class="symrow"><span>${esc(s)}</span><span class="muted">${v.n}× ${v.days.length>=2?'· meist um Zyklustag '+Math.round(median(v.days)):''}</span></div>`).join('') : '<p class="muted small">Noch keine Symptome eingetragen.</p>'}
     </div>
     <p class="muted small">Die Prognose ist eine einfache Durchschnittsrechnung. Sie ist keine Verhütungsmethode und ersetzt keine ärztliche Beratung.</p>
   `;
 }
+
+const listTags = (list, empty) => S.data[list].length
+  ? `<div class="chips">${S.data[list].map((s,i)=>`<span class="tag">${esc(s)}<button data-dellist="${list}" data-idx="${i}" aria-label="${esc(s)} entfernen">✕</button></span>`).join('')}</div>`
+  : `<p class="muted small" style="margin:0">${empty}</p>`;
 
 async function renderMehr(){
   const st = S.data.settings;
@@ -530,8 +598,15 @@ async function renderMehr(){
       <button class="btn" data-act="export">Backup exportieren</button>
       <label class="btn ghost">Backup importieren<input type="file" id="importFile" accept=".json,application/json"></label>
     </div>
+    <div class="card set"><h3>Meine Medikamente</h3>
+      ${listTags('meds', 'Noch keine eingetragen.')}
+      <button class="btn ghost" data-act="addmed">+ Medikament hinzufügen</button>
+    </div>
     <div class="card set"><h3>Eigene Symptome</h3>
-      ${S.data.customSymptoms.length ? `<div class="chips">${S.data.customSymptoms.map((s,i)=>`<span class="tag">${esc(s)}<button data-delsym="${i}" aria-label="${esc(s)} entfernen">✕</button></span>`).join('')}</div>` : '<p class="muted small">Noch keine. Im Eintrag unter „+ Eigenes“ hinzufügen.</p>'}
+      ${listTags('customSymptoms', 'Noch keine. Im Eintrag unter „+ Eigenes“ hinzufügen.')}
+    </div>
+    <div class="card set"><h3>Eigene Bewegungsarten</h3>
+      ${listTags('customMoves', 'Noch keine. Im Eintrag unter „+ Eigene“ hinzufügen.')}
     </div>
     <div class="card set"><h3>Sicherheit</h3>
       <label class="small muted">Automatisch sperren nach</label>
@@ -550,11 +625,11 @@ async function renderMehr(){
 async function exportBackup(){
   await saveNow();
   const blob = await encryptJSON(S.key, S.salt, S.data);
-  const name = `zyklus-backup-${today()}.json`;
-  const content = JSON.stringify({ app:'zyklus-tagebuch', ...blob });
+  const name = `healthy-backup-${today()}.json`;
+  const content = JSON.stringify({ app:'healthy', ...blob });
   const file = new File([content], name, { type:'application/json' });
   if (isIOS() && navigator.canShare && navigator.canShare({ files:[file] })){
-    try { await navigator.share({ files:[file], title:'Zyklus-Backup' }); return; }
+    try { await navigator.share({ files:[file], title:'Healthy-Backup' }); return; }
     catch(e){ if (e.name === 'AbortError') return; }
   }
   const url = URL.createObjectURL(file);
@@ -583,7 +658,7 @@ async function importFile(file, mode){
     const cur = S.data.entries[d];
     if (!cur || (e.u||0) > (cur.u||0)){ S.data.entries[d] = e; n++; }
   }
-  for (const s of data.customSymptoms) if (!S.data.customSymptoms.includes(s)) S.data.customSymptoms.push(s);
+  for (const list of ['customSymptoms','customMoves','meds']) for (const s of data[list]) if (!S.data[list].includes(s)) S.data[list].push(s);
   await saveNow(); render();
   toast(n ? `${n} ${n===1?'Tag':'Tage'} übernommen` : 'Alles war schon aktuell');
 }
@@ -622,10 +697,15 @@ $('#app').addEventListener('click', async ev => {
     const mood = e.mood.includes(ds.mood) ? e.mood.filter(x=>x!==ds.mood) : [...e.mood, ds.mood];
     setEntry(S.date, { mood }); return renderTag();
   }
-  if ('delsym' in ds){
-    const s = S.data.customSymptoms[+ds.delsym];
-    if (await confirmBox(`„${esc(s)}“ entfernen?`, 'Das Symptom verschwindet aus der Auswahl. Bereits eingetragene Tage behalten es.', 'Entfernen')){
-      S.data.customSymptoms.splice(+ds.delsym, 1); save(); renderMehr();
+  if (ds.energy){ const e = getEntry(S.date), v = +ds.energy; setEntry(S.date, { energy: e.energy === v ? 0 : v }); return renderTag(); }
+  if (ds.sq){ const e = getEntry(S.date), v = +ds.sq; setEntry(S.date, { sleepQ: e.sleepQ === v ? 0 : v }); return renderTag(); }
+  if ('pain' in ds){ const e = getEntry(S.date), v = +ds.pain; setEntry(S.date, { pain: e.pain === v ? '' : v }); return renderTag(); }
+  if (ds.move){ const e = getEntry(S.date); setEntry(S.date, { move: e.move.includes(ds.move) ? e.move.filter(x=>x!==ds.move) : [...e.move, ds.move] }); return renderTag(); }
+  if (ds.med){ const e = getEntry(S.date); setEntry(S.date, { meds: e.meds.includes(ds.med) ? e.meds.filter(x=>x!==ds.med) : [...e.meds, ds.med] }); return renderTag(); }
+  if (ds.dellist){
+    const list = ds.dellist, s = S.data[list][+ds.idx];
+    if (await confirmBox(`„${esc(s)}“ entfernen?`, 'Der Eintrag verschwindet aus der Auswahl. Bereits eingetragene Tage behalten ihn.', 'Entfernen')){
+      S.data[list].splice(+ds.idx, 1); save(); renderMehr();
     }
     return;
   }
@@ -637,6 +717,16 @@ $('#app').addEventListener('click', async ev => {
       const s = await askText('Eigenes Symptom', 'z. B. Gelenkschmerzen');
       if (s && !allSymptoms().includes(s)){ S.data.customSymptoms.push(s); save(); }
       renderTag(); break;
+    }
+    case 'addmove': {
+      const s = await askText('Eigene Bewegungsart', 'z. B. Wandern');
+      if (s && !allMoves().includes(s)){ S.data.customMoves.push(s); save(); }
+      renderTag(); break;
+    }
+    case 'addmed': {
+      const s = await askText('Medikament', 'z. B. Ibuprofen 400 oder Vitamin D');
+      if (s && !S.data.meds.includes(s)){ S.data.meds.push(s); save(); }
+      render(); break;
     }
     case 'mprev': S.month = new Date(S.month.getFullYear(), S.month.getMonth()-1, 1); renderKal(); break;
     case 'mnext': S.month = new Date(S.month.getFullYear(), S.month.getMonth()+1, 1); renderKal(); break;
@@ -651,7 +741,8 @@ $('#app').addEventListener('click', async ev => {
 $('#app').addEventListener('input', ev => {
   const t = ev.target; if (!S.data) return;
   if (t.id === 'note') setEntry(S.date, { note:t.value });
-  else if (t.id === 'temp') setEntry(S.date, { temp:t.value.replace(',', '.').trim() });
+  else if (t.id === 'sleepH') setEntry(S.date, { sleepH:t.value.replace(',', '.').trim() });
+  else if (t.id === 'moveMin') setEntry(S.date, { moveMin:t.value.replace(/[^0-9]/g, '') });
 });
 $('#app').addEventListener('change', ev => {
   const t = ev.target; if (!S.data) return;
