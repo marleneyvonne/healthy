@@ -176,6 +176,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
    Keine Server, keine Analyse, keine externen Bibliotheken.
    ========================================================= */
 
+const APP_VERSION = '6';
 const ITER = 310000;
 const DB_NAME = 'healthy', STORE = 'vault';
 
@@ -707,6 +708,7 @@ async function renderMehr(){
     <div class="card set"><h3>Datenschutz</h3>
       <p class="muted small" style="margin:0">Diese App hat keinen Server, keine Analyse und kein Tracking. Netzwerkverbindungen sind per Content-Security-Policy gesperrt. Deine Einträge liegen verschlüsselt (AES-256) nur im Speicher dieses Browsers.</p>
     </div>
+    <p class="muted small" style="text-align:center">Healthy · Version ${APP_VERSION}</p>
     <button class="btn danger full" data-act="wipe">Alle Daten auf diesem Gerät löschen</button>
   `;
 }
