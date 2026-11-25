@@ -218,9 +218,9 @@ const enc = new TextEncoder(), dec = new TextDecoder();
 const b64 = u => { let s=''; for (let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null, u.subarray(i,i+0x8000)); return btoa(s); };
 const unb64 = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
 
-async function deriveKey(pw, salt, iter=ITER){
+async function deriveKey(pw, salt, iter=ITER, extractable=false){
   const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:iter, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, extractable, ['encrypt','decrypt']);
 }
 async function encryptJSON(key, salt, obj){
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -230,6 +230,82 @@ async function encryptJSON(key, salt, obj){
 async function decryptJSON(key, blob){
   const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(blob.iv)}, key, unb64(blob.ct));
   return JSON.parse(dec.decode(pt));
+}
+
+/* ---------- Fingerabdruck / Face ID (WebAuthn + PRF) ----------
+   Der Fingerabdruck verlässt nie das Handy. Das Gerät liefert nach erfolgreicher
+   Prüfung ein geheimes Byte-Muster (PRF), aus dem ein Schlüssel abgeleitet wird.
+   Damit ist eine Kopie deines Datenschlüssels verschlüsselt gespeichert. */
+async function bioAvailable(){
+  try { return !!(window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); }
+  catch(e){ return false; }
+}
+async function prfKey(prfOut){
+  const base = await crypto.subtle.importKey('raw', prfOut, 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'HKDF', hash:'SHA-256', salt:new Uint8Array(32), info:enc.encode('healthy-bio-v1') }, base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function bioPrf(credId, prfSalt){
+  const cred = await navigator.credentials.get({ publicKey:{
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials: [{ type:'public-key', id:credId }],
+    userVerification: 'required', timeout: 60000,
+    extensions: { prf:{ eval:{ first:prfSalt } } }
+  }});
+  const r = cred.getClientExtensionResults().prf;
+  if (!r || !r.results || !r.results.first) throw new Error('prf');
+  return r.results.first;
+}
+async function bioEnable(){
+  const blob = await idbGet('vault');
+  const pw = await askPassword('Fingerabdruck einrichten', 'Bestätige zuerst dein Passwort. Danach fragt dein Handy nach Fingerabdruck oder Face ID.');
+  if (!pw) return;
+  let raw;
+  try {
+    const xkey = await deriveKey(pw, unb64(blob.salt), blob.iter || ITER, true);
+    await decryptJSON(xkey, blob);
+    raw = new Uint8Array(await crypto.subtle.exportKey('raw', xkey));
+  } catch(e){ return toast('Falsches Passwort.'); }
+  const prfSalt = crypto.getRandomValues(new Uint8Array(32));
+  let cred;
+  try {
+    cred = await navigator.credentials.create({ publicKey:{
+      rp: { name:'Healthy' },
+      user: { id:crypto.getRandomValues(new Uint8Array(16)), name:'Healthy', displayName:'Healthy' },
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
+      authenticatorSelection: { authenticatorAttachment:'platform', residentKey:'preferred', userVerification:'required' },
+      timeout: 60000,
+      extensions: { prf:{ eval:{ first:prfSalt } } }
+    }});
+  } catch(e){ return toast(e.name === 'NotAllowedError' ? 'Abgebrochen.' : 'Einrichtung fehlgeschlagen: ' + e.message); }
+  const ext = cred.getClientExtensionResults().prf;
+  if (!ext || !ext.enabled && !(ext.results && ext.results.first)) return toast('Dieses Handy bzw. dieser Browser unterstützt das leider nicht.');
+  const credId = new Uint8Array(cred.rawId);
+  let out = ext.results && ext.results.first;
+  try { if (!out) out = await bioPrf(credId, prfSalt); }
+  catch(e){ return toast('Dieses Handy bzw. dieser Browser unterstützt das leider nicht.'); }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, await prfKey(out), raw));
+  raw.fill(0);
+  await idbSet('bio', { v:1, credId:b64(credId), prfSalt:b64(prfSalt), iv:b64(iv), ct:b64(ct), vsalt:blob.salt });
+  toast('Fingerabdruck-Entsperren ist eingerichtet ✓');
+  renderMehr();
+}
+async function bioUnlock(){
+  const bio = await idbGet('bio'), blob = await idbGet('vault');
+  const out = await bioPrf(unb64(bio.credId), unb64(bio.prfSalt));
+  const raw = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(bio.iv) }, await prfKey(out), unb64(bio.ct)));
+  const key = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+  raw.fill(0);
+  const data = await decryptJSON(key, blob);
+  S.key = key; S.salt = unb64(blob.salt); S.data = normalize(data);
+  enterApp();
+}
+async function bioState(){
+  let bio = null, blob = null;
+  try { bio = await idbGet('bio'); blob = await idbGet('vault'); } catch(e){}
+  if (bio && blob && bio.vsalt !== blob.salt){ await idbDel('bio').catch(()=>{}); bio = null; }  // Passwort wurde geändert
+  return bio;
 }
 
 /* ---------- Daten ---------- */
@@ -325,6 +401,7 @@ const askText = (title, ph) => dialog(`<h3>${title}</h3><input type="text" id="m
 const confirmBox = (title, text, okLabel) => { dialog.ok = okLabel; return dialog(`<h3>${title}</h3><p class="muted small">${text}</p>`); };
 
 /* ---------- Sperren / Entsperren ---------- */
+const FP_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M6.5 6.2A8 8 0 0 1 20 12v1.5M4 12a8 8 0 0 1 .9-3.7M12 8a4 4 0 0 1 4 4v1.5a12 12 0 0 1-1 4.8M8 12a4 4 0 0 1 1.2-2.9M12 12v1.5a8 8 0 0 1-2.2 5.5M8 13.5a4 4 0 0 1-.8 2.4"/></svg>';
 const LOGO = '<div class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.6 4.2 7.8 2.2M14.4 4.2l1.8-2" fill="none" stroke="#1d1a1b" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="6.6" r="3.3" fill="#1d1a1b"/><circle cx="12" cy="14.2" r="7.6" fill="#d7263d"/><path d="M12 7.2v14.6" stroke="#1d1a1b" stroke-width="1.2"/><circle cx="8.6" cy="11.6" r="1.5" fill="#1d1a1b"/><circle cx="15.4" cy="11.6" r="1.5" fill="#1d1a1b"/><circle cx="7.8" cy="16.2" r="1.3" fill="#1d1a1b"/><circle cx="16.2" cy="16.2" r="1.3" fill="#1d1a1b"/><circle cx="10" cy="19.4" r="1" fill="#1d1a1b"/><circle cx="14" cy="19.4" r="1" fill="#1d1a1b"/><circle cx="10.6" cy="5.6" r=".7" fill="#fff"/><circle cx="13.4" cy="5.6" r=".7" fill="#fff"/></svg></div>';
 
 async function showLock(){
@@ -363,8 +440,10 @@ async function showLock(){
     };
     $('#restoreFile').onchange = e => { const f=e.target.files[0]; e.target.value=''; if (f) importFile(f, 'restore'); };
   } else {
+    const bio = await bioState();
     L.innerHTML = `<div class="lock-box">${LOGO}
       <h1>Gesperrt</h1>
+      ${bio ? `<button class="btn full" id="bioBtn" style="margin-top:22px">${FP_ICON} Mit Fingerabdruck entsperren</button><p class="err" id="bioErr" style="margin-top:8px"></p><div class="divider" style="margin-top:6px">oder mit Passwort</div>` : ''}
       <form id="unlock">
         <input type="password" id="pw" autocomplete="current-password" placeholder="Passwort" required>
         <p class="err" id="err"></p>
@@ -386,6 +465,11 @@ async function showLock(){
       } catch(err){ $('#err').textContent = 'Falsches Passwort.'; $('#pw').select(); }
     };
     $('#forgot').onclick = wipeAll;
+    if (bio) $('#bioBtn').onclick = async () => {
+      $('#bioErr').textContent = '';
+      try { await bioUnlock(); }
+      catch(err){ $('#bioErr').textContent = err.name === 'NotAllowedError' ? 'Abgebrochen – versuch es nochmal oder nimm dein Passwort.' : 'Hat nicht geklappt. Bitte mit Passwort entsperren.'; }
+    };
   }
 }
 
@@ -411,6 +495,7 @@ async function wipeAll(){
   const ok = await confirmBox('Alles löschen?', 'Alle Einträge auf diesem Gerät werden endgültig gelöscht. Das lässt sich nicht rückgängig machen – außer du hast ein Backup.', 'Endgültig löschen');
   if (!ok) return;
   await idbDel('vault');
+  await idbDel('bio').catch(()=>{});
   S.key = null; S.data = null; S.salt = null;
   document.querySelectorAll('.view').forEach(v => v.innerHTML = '');
   showLock();
@@ -590,6 +675,7 @@ const listTags = (list, empty) => S.data[list].length
 
 async function renderMehr(){
   const st = S.data.settings;
+  const bioOk = await bioAvailable(), bio = await bioState();
   const persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted().catch(()=>false) : false;
   if (S.view !== 'mehr' || !S.data) return;
   $('#v-mehr').innerHTML = `
@@ -611,6 +697,10 @@ async function renderMehr(){
     <div class="card set"><h3>Sicherheit</h3>
       <label class="small muted">Automatisch sperren nach</label>
       <select id="autolock">${[[0,'Sofort beim Verlassen'],[1,'1 Minute'],[5,'5 Minuten'],[15,'15 Minuten'],[60,'1 Stunde']].map(([v,l])=>`<option value="${v}" ${st.autoLock==v?'selected':''}>${l}</option>`).join('')}</select>
+      ${bio ? `<button class="btn ghost" data-act="biooff">Fingerabdruck-Entsperren ausschalten</button>`
+        : bioOk ? `<button class="btn" data-act="bioon">${FP_ICON} Mit Fingerabdruck entsperren</button>
+                   <p class="muted small" style="margin:0">Nutzt Fingerabdruck bzw. Face ID deines Handys. Dein Passwort bleibt als Ersatz bestehen.</p>`
+        : `<p class="muted small" style="margin:0">Fingerabdruck-Entsperren ist hier nicht verfügbar. Es funktioniert auf dem Handy, wenn die App über ihre https-Adresse geöffnet wird.</p>`}
       <button class="btn ghost" data-act="changepw">Passwort ändern</button>
       <p class="muted small" style="margin:0">Dauerhafter Speicher: ${persisted ? 'aktiv ✓' : 'nicht bestätigt – regelmäßig Backups machen'}</p>
     </div>
@@ -650,6 +740,7 @@ async function importFile(file, mode){
   catch(e){ return toast('Falsches Passwort.'); }
   if (mode === 'restore'){
     S.key = key; S.salt = salt; S.data = data;
+    await idbDel('bio').catch(()=>{});
     await saveNow(); enterApp();
     return toast('Backup wiederhergestellt – es gilt das Passwort des Backups.');
   }
@@ -677,7 +768,10 @@ async function changePassword(){
   S.salt = crypto.getRandomValues(new Uint8Array(16));
   S.key = await deriveKey(vals.p1, S.salt);
   await saveNow();
-  toast('Passwort geändert. Alte Backups brauchen weiter das alte Passwort.');
+  const hadBio = await idbGet('bio').catch(()=>null);
+  await idbDel('bio').catch(()=>{});
+  toast('Passwort geändert.' + (hadBio ? ' Fingerabdruck bitte neu einrichten.' : ' Alte Backups brauchen weiter das alte Passwort.'));
+  renderMehr();
 }
 
 /* ---------- Ereignisse ---------- */
@@ -733,6 +827,12 @@ $('#app').addEventListener('click', async ev => {
     case 'mtoday': { const n = new Date(); S.month = new Date(n.getFullYear(), n.getMonth(), 1); renderKal(); break; }
     case 'export': exportBackup(); break;
     case 'changepw': changePassword(); break;
+    case 'bioon': bioEnable(); break;
+    case 'biooff':
+      if (await confirmBox('Fingerabdruck ausschalten?', 'Danach entsperrst du die App wieder nur mit deinem Passwort.', 'Ausschalten')){
+        await idbDel('bio').catch(()=>{}); toast('Ausgeschaltet'); renderMehr();
+      }
+      break;
     case 'wipe': wipeAll(); break;
     case 'lock': lock(); break;
   }
