@@ -176,7 +176,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
    Keine Server, keine Analyse, keine externen Bibliotheken.
    ========================================================= */
 
-const APP_VERSION = '6';
+const APP_VERSION = '7';
 const ITER = 310000;
 const DB_NAME = 'healthy', STORE = 'vault';
 
@@ -278,13 +278,34 @@ async function bioEnable(){
       timeout: 60000,
       extensions: { prf:{ eval:{ first:prfSalt } } }
     }});
-  } catch(e){ return toast(e.name === 'NotAllowedError' ? 'Abgebrochen.' : 'Einrichtung fehlgeschlagen: ' + e.message); }
-  const ext = cred.getClientExtensionResults().prf;
-  if (!ext || !ext.enabled && !(ext.results && ext.results.first)) return toast('Dieses Handy bzw. dieser Browser unterstützt das leider nicht.');
+  } catch(e){
+    return bioFail(e.name === 'NotAllowedError'
+      ? 'Abgebrochen oder nicht erlaubt. Auf dem iPhone muss dafür der iCloud-Schlüsselbund aktiv sein (Einstellungen → [dein Name] → iCloud → Passwörter und Schlüsselbund).'
+      : 'Einrichtung fehlgeschlagen.', e.name + ': ' + e.message);
+  }
   const credId = new Uint8Array(cred.rawId);
-  let out = ext.results && ext.results.first;
-  try { if (!out) out = await bioPrf(credId, prfSalt); }
-  catch(e){ return toast('Dieses Handy bzw. dieser Browser unterstützt das leider nicht.'); }
+  const ext = cred.getClientExtensionResults().prf;
+  let out = ext && ext.results && ext.results.first, why = '';
+  if (!out){
+    if (!ext) why = 'PRF fehlt';
+    else if (ext.enabled === false) why = 'PRF deaktiviert';
+    else {
+      try { out = await bioPrf(credId, prfSalt); }
+      catch(e){ why = 'PRF-Abfrage: ' + e.name; if (e.name === 'NotAllowedError') return toast('Abgebrochen.'); }
+    }
+  }
+  if (!out){
+    const ok = await confirmBox('Einfachen Modus nutzen?',
+      `Dein Gerät kann die stärkste Variante nicht (${esc(deviceInfo())}, ${esc(why)}). Im einfachen Modus prüft Face ID/Touch ID, ob du es bist, und gibt dann den Datenschlüssel frei, der dafür im geschützten App-Speicher des iPhones liegt.<br><br>Das ist bequem und auf einem gesperrten iPhone gut geschützt, aber etwas schwächer als die reine Passwort-Verschlüsselung.`,
+      'Einfachen Modus nutzen');
+    if (!ok){ raw.fill(0); return; }
+    const key = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+    raw.fill(0);
+    try { await idbSet('bio', { v:2, mode:'simple', credId:b64(credId), key, vsalt:blob.salt }); }
+    catch(e){ return bioFail('Der Schlüssel konnte nicht gespeichert werden.', e.name + ': ' + e.message); }
+    toast('Entsperren mit Face ID/Touch ID ist eingerichtet ✓');
+    return renderMehr();
+  }
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, await prfKey(out), raw));
   raw.fill(0);
@@ -294,6 +315,16 @@ async function bioEnable(){
 }
 async function bioUnlock(){
   const bio = await idbGet('bio'), blob = await idbGet('vault');
+  if (bio.mode === 'simple'){
+    await navigator.credentials.get({ publicKey:{
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{ type:'public-key', id:unb64(bio.credId) }],
+      userVerification: 'required', timeout: 60000
+    }});
+    const data = await decryptJSON(bio.key, blob);
+    S.key = bio.key; S.salt = unb64(blob.salt); S.data = normalize(data);
+    return enterApp();
+  }
   const out = await bioPrf(unb64(bio.credId), unb64(bio.prfSalt));
   const raw = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(bio.iv) }, await prfKey(out), unb64(bio.ct)));
   const key = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
@@ -301,6 +332,15 @@ async function bioUnlock(){
   const data = await decryptJSON(key, blob);
   S.key = key; S.salt = unb64(blob.salt); S.data = normalize(data);
   enterApp();
+}
+function deviceInfo(){
+  const m = navigator.userAgent.match(/OS (\d+)[_.](\d+)/);
+  const standalone = navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  return (m ? `iOS ${m[1]}.${m[2]}` : 'Browser') + (standalone ? ', Home-Bildschirm-App' : ', Browser');
+}
+function bioFail(msg, detail){
+  openModal(`<h3>Hat nicht geklappt</h3><p class="muted small">${esc(msg)}</p><p class="muted small" style="margin:0"><code>${esc(deviceInfo())} · ${esc(detail)}</code></p><button class="btn" data-m="close">OK</button>`)
+    .querySelector('[data-m=close]').onclick = closeModal;
 }
 async function bioState(){
   let bio = null, blob = null;
