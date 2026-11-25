@@ -176,7 +176,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
    Keine Server, keine Analyse, keine externen Bibliotheken.
    ========================================================= */
 
-const APP_VERSION = '7';
+const APP_VERSION = '8';
 const ITER = 310000;
 const DB_NAME = 'healthy', STORE = 'vault';
 
@@ -256,9 +256,17 @@ async function bioPrf(credId, prfSalt){
   if (!r || !r.results || !r.results.first) throw new Error('prf');
   return r.results.first;
 }
+// iOS erlaubt Face ID/Touch ID nur direkt nach einem Fingertipp – deshalb bekommt jede Abfrage einen eigenen Knopf.
+function tapStep(title, text, label, fn){
+  return new Promise(res => {
+    const m = openModal(`<h3>${title}</h3><p class="muted small">${text}</p><div class="row"><button class="btn ghost" data-m="no">Abbrechen</button><button class="btn" data-m="ok">${label}</button></div>`);
+    m.querySelector('[data-m=no]').onclick = () => { closeModal(); res({ cancel:true }); };
+    m.querySelector('[data-m=ok]').onclick = () => { const p = fn(); closeModal(); p.then(v => res({ v }), e => res({ e })); };
+  });
+}
 async function bioEnable(){
   const blob = await idbGet('vault');
-  const pw = await askPassword('Fingerabdruck einrichten', 'Bestätige zuerst dein Passwort. Danach fragt dein Handy nach Fingerabdruck oder Face ID.');
+  const pw = await askPassword('Fingerabdruck einrichten', 'Bestätige zuerst dein Passwort.');
   if (!pw) return;
   let raw;
   try {
@@ -267,9 +275,8 @@ async function bioEnable(){
     raw = new Uint8Array(await crypto.subtle.exportKey('raw', xkey));
   } catch(e){ return toast('Falsches Passwort.'); }
   const prfSalt = crypto.getRandomValues(new Uint8Array(32));
-  let cred;
-  try {
-    cred = await navigator.credentials.create({ publicKey:{
+  const r1 = await tapStep('Schritt 1 von 2', 'Tippe auf den Knopf und bestätige mit Face ID, Touch ID oder Fingerabdruck.', 'Einrichten', () =>
+    navigator.credentials.create({ publicKey:{
       rp: { name:'Healthy' },
       user: { id:crypto.getRandomValues(new Uint8Array(16)), name:'Healthy', displayName:'Healthy' },
       challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -277,21 +284,24 @@ async function bioEnable(){
       authenticatorSelection: { authenticatorAttachment:'platform', residentKey:'preferred', userVerification:'required' },
       timeout: 60000,
       extensions: { prf:{ eval:{ first:prfSalt } } }
-    }});
-  } catch(e){
-    return bioFail(e.name === 'NotAllowedError'
+    }}));
+  if (r1.cancel){ raw.fill(0); return; }
+  if (r1.e){
+    raw.fill(0);
+    return bioFail(r1.e.name === 'NotAllowedError'
       ? 'Abgebrochen oder nicht erlaubt. Auf dem iPhone muss dafür der iCloud-Schlüsselbund aktiv sein (Einstellungen → [dein Name] → iCloud → Passwörter und Schlüsselbund).'
-      : 'Einrichtung fehlgeschlagen.', e.name + ': ' + e.message);
+      : 'Einrichtung fehlgeschlagen.', r1.e.name + ': ' + r1.e.message);
   }
-  const credId = new Uint8Array(cred.rawId);
+  const cred = r1.v, credId = new Uint8Array(cred.rawId);
   const ext = cred.getClientExtensionResults().prf;
   let out = ext && ext.results && ext.results.first, why = '';
   if (!out){
     if (!ext) why = 'PRF fehlt';
     else if (ext.enabled === false) why = 'PRF deaktiviert';
     else {
-      try { out = await bioPrf(credId, prfSalt); }
-      catch(e){ why = 'PRF-Abfrage: ' + e.name; if (e.name === 'NotAllowedError') return toast('Abgebrochen.'); }
+      const r2 = await tapStep('Schritt 2 von 2', 'Fast geschafft – bitte noch einmal bestätigen.', 'Bestätigen', () => bioPrf(credId, prfSalt));
+      if (r2.cancel){ raw.fill(0); return; }
+      if (r2.e) why = 'PRF-Abfrage: ' + r2.e.name; else out = r2.v;
     }
   }
   if (!out){
@@ -313,22 +323,23 @@ async function bioEnable(){
   toast('Fingerabdruck-Entsperren ist eingerichtet ✓');
   renderMehr();
 }
-async function bioUnlock(){
-  const bio = await idbGet('bio'), blob = await idbGet('vault');
+// Wird direkt aus dem Knopf-Tipp aufgerufen: zuerst Face ID abfragen, erst danach Daten laden.
+async function bioUnlock(bio){
+  let key;
   if (bio.mode === 'simple'){
     await navigator.credentials.get({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       allowCredentials: [{ type:'public-key', id:unb64(bio.credId) }],
       userVerification: 'required', timeout: 60000
     }});
-    const data = await decryptJSON(bio.key, blob);
-    S.key = bio.key; S.salt = unb64(blob.salt); S.data = normalize(data);
-    return enterApp();
+    key = bio.key;
+  } else {
+    const out = await bioPrf(unb64(bio.credId), unb64(bio.prfSalt));
+    const raw = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(bio.iv) }, await prfKey(out), unb64(bio.ct)));
+    key = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
+    raw.fill(0);
   }
-  const out = await bioPrf(unb64(bio.credId), unb64(bio.prfSalt));
-  const raw = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(bio.iv) }, await prfKey(out), unb64(bio.ct)));
-  const key = await crypto.subtle.importKey('raw', raw, { name:'AES-GCM' }, false, ['encrypt','decrypt']);
-  raw.fill(0);
+  const blob = await idbGet('vault');
   const data = await decryptJSON(key, blob);
   S.key = key; S.salt = unb64(blob.salt); S.data = normalize(data);
   enterApp();
@@ -508,7 +519,7 @@ async function showLock(){
     $('#forgot').onclick = wipeAll;
     if (bio) $('#bioBtn').onclick = async () => {
       $('#bioErr').textContent = '';
-      try { await bioUnlock(); }
+      try { await bioUnlock(bio); }
       catch(err){ $('#bioErr').textContent = err.name === 'NotAllowedError' ? 'Abgebrochen – versuch es nochmal oder nimm dein Passwort.' : 'Hat nicht geklappt. Bitte mit Passwort entsperren.'; }
     };
   }
