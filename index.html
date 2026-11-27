@@ -6,14 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Healthy">
+<meta name="apple-mobile-web-app-title" content="Lebenszyklus">
 <meta name="theme-color" content="#f7f3f0">
 <!-- Sicherheitsnetz: Die Seite darf keinerlei Netzwerkverbindungen aufbauen (connect-src 'none'). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M9.6%204.2%207.8%202.2M14.4%204.2l1.8-2%22%20fill%3D%22none%22%20stroke%3D%22%231d1a1b%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%226.6%22%20r%3D%223.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2214.2%22%20r%3D%227.6%22%20fill%3D%22%23d7263d%22/%3E%3Cpath%20d%3D%22M12%207.2v14.6%22%20stroke%3D%22%231d1a1b%22%20stroke-width%3D%221.2%22/%3E%3Ccircle%20cx%3D%228.6%22%20cy%3D%2211.6%22%20r%3D%221.5%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2215.4%22%20cy%3D%2211.6%22%20r%3D%221.5%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%227.8%22%20cy%3D%2216.2%22%20r%3D%221.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2216.2%22%20cy%3D%2216.2%22%20r%3D%221.3%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2219.4%22%20r%3D%221%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2219.4%22%20r%3D%221%22%20fill%3D%22%231d1a1b%22/%3E%3Ccircle%20cx%3D%2210.6%22%20cy%3D%225.6%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2213.4%22%20cy%3D%225.6%22%20r%3D%22.7%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
-<title>Healthy</title>
+<title>Lebenszyklus</title>
 <style>
 :root{--bg:#f7f3f0;--card:#fff;--ink:#2a2125;--muted:#85767c;--line:#ebe2dd;--accent:#a3335a;--accent-ink:#fff;--soft:#f6e2e9;--mid:#e3a6bb;--period:#c23f69;--spot:#efbccb;--danger:#b3261e;color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root{--bg:#151113;--card:#211b1e;--ink:#f2eaed;--muted:#a8999f;--line:#342b2f;--accent:#e57c9f;--accent-ink:#1b1215;--soft:#3a2630;--mid:#7e4459;--period:#de6990;--spot:#6e3c4d;--danger:#ff8a80}}
@@ -70,13 +70,9 @@ main{max-width:560px;margin:0 auto;padding:14px 16px calc(100px + env(safe-area-
 .chip.lv2{background:var(--mid);border-color:var(--mid)}
 .chip .lv{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
 .chip.add{border-style:dashed;color:var(--muted)}
-.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
-.scale .chip{padding:8px 0;justify-content:center;font-size:14px}
-.scale-l{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
 .inline{display:flex;align-items:center;gap:10px;margin-top:12px}
 .inline input{width:110px;flex:none}
 .inline span{color:var(--muted);font-size:14px}
-.stats.two{grid-template-columns:repeat(2,1fr)}
 .row{display:flex;gap:10px;align-items:center}
 .row>*{flex:1}
 
@@ -145,7 +141,7 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
 
 <div id="app" hidden>
   <header class="top">
-    <div class="brand">Healthy</div>
+    <div class="brand">Lebenszyklus</div>
     <button class="icon-btn" data-act="lock" aria-label="Sperren" title="Sperren">
       <svg class="i" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
     </button>
@@ -170,17 +166,17 @@ code{font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:5px}
 <script>
 "use strict";
 /* =========================================================
-   Healthy – alles bleibt auf diesem Gerät.
+   Lebenszyklus – alles bleibt auf diesem Gerät.
    Speicher: IndexedDB, verschlüsselt mit AES-GCM (256 Bit).
    Schlüssel: aus deinem Passwort per PBKDF2-SHA256 abgeleitet.
    Keine Server, keine Analyse, keine externen Bibliotheken.
    ========================================================= */
 
-const APP_VERSION = '8';
+const APP_VERSION = '9';
 const ITER = 310000;
-const DB_NAME = 'healthy', STORE = 'vault';
+const DB_NAME = 'healthy', STORE = 'vault';   // interner Name – nicht ändern, sonst sind gespeicherte Daten nicht mehr auffindbar
 
-const SYMPTOMS = ['Krämpfe','Kopfschmerzen','Brustspannen','Blähungen','Rückenschmerzen','Übelkeit','Müdigkeit','Akne','Heißhunger','Schlafprobleme','Stimmungsschwankungen','Durchfall','Verstopfung','Schwindel'];
+const SYMPTOMS = ['Krämpfe','Kopfschmerzen','Halsschmerzen','Fieber','Brustspannen','Rückenschmerzen','Übelkeit','Verdauungsprobleme','Müdigkeit','Akne','Heißhunger','Schlafprobleme','Stimmungsschwankungen','Schwindel'];
 const FLOWS = [['','Keine'],['schmier','Schmierblutung'],['leicht','Leicht'],['mittel','Mittel'],['stark','Stark']];
 const MOODS = [['gut','😊 Gut'],['ok','🙂 Okay'],['muede','😴 Müde'],['gereizt','😤 Gereizt'],['traurig','😢 Traurig'],['aengstlich','😟 Ängstlich']];
 const LV = ['', 'leicht', 'mittel', 'stark'];
@@ -277,8 +273,8 @@ async function bioEnable(){
   const prfSalt = crypto.getRandomValues(new Uint8Array(32));
   const r1 = await tapStep('Schritt 1 von 2', 'Tippe auf den Knopf und bestätige mit Face ID, Touch ID oder Fingerabdruck.', 'Einrichten', () =>
     navigator.credentials.create({ publicKey:{
-      rp: { name:'Healthy' },
-      user: { id:crypto.getRandomValues(new Uint8Array(16)), name:'Healthy', displayName:'Healthy' },
+      rp: { name:'Lebenszyklus' },
+      user: { id:crypto.getRandomValues(new Uint8Array(16)), name:'Lebenszyklus', displayName:'Lebenszyklus' },
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
       authenticatorSelection: { authenticatorAttachment:'platform', residentKey:'preferred', userVerification:'required' },
@@ -371,13 +367,13 @@ function normalize(d){
   d.settings = Object.assign({ autoLock:5 }, d.settings || {});
   return d;
 }
-const blankEntry = () => ({ flow:'', sym:{}, mood:[], note:'', sleepH:'', sleepQ:0, energy:0, pain:'', move:[], moveMin:'', meds:[] });
+const blankEntry = () => ({ flow:'', sym:{}, mood:[], note:'', sleepH:'', sleepQ:0, energy:0, move:[], moveMin:'', meds:[] });
 function getEntry(d){ const e = S.data.entries[d] || {}; return { ...blankEntry(), ...e, sym:{...(e.sym||{})}, mood:[...(e.mood||[])], move:[...(e.move||[])], meds:[...(e.meds||[])] }; }
 function setEntry(d, patch){ S.data.entries[d] = { ...getEntry(d), ...patch, u:Date.now() }; save(); }
 const hasContent = e => e && (e.flow || hasHealth(e));
-const hasHealth = e => e && (Object.keys(e.sym||{}).length || (e.mood||[]).length || e.note || e.sleepH || e.sleepQ || e.energy || e.pain !== undefined && e.pain !== '' || (e.move||[]).length || e.moveMin || (e.meds||[]).length);
+const hasHealth = e => e && (Object.keys(e.sym||{}).length || (e.mood||[]).length || e.note || e.sleepH || e.sleepQ || e.energy || (e.move||[]).length || e.moveMin || (e.meds||[]).length);
 const uniq = a => [...new Set(a)];
-const allSymptoms = () => uniq([...SYMPTOMS, ...S.data.customSymptoms]);
+const allSymptoms = e => uniq([...SYMPTOMS, ...S.data.customSymptoms, ...(e ? Object.keys(e.sym) : [])]);
 const allMoves = e => uniq([...MOVES, ...S.data.customMoves, ...(e ? e.move : [])]);
 const allMeds = e => uniq([...S.data.meds, ...(e ? e.meds : [])]);
 const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
@@ -466,7 +462,7 @@ async function showLock(){
   let has = false; try { has = !!(await idbGet('vault')); } catch(e){}
   if (!has){
     L.innerHTML = `<div class="lock-box">${LOGO}
-      <h1>Healthy</h1>
+      <h1>Lebenszyklus</h1>
       <p class="muted">Deine Daten bleiben nur auf diesem Gerät – verschlüsselt mit deinem Passwort.</p>
       <form id="setup">
         <input type="password" id="pw1" autocomplete="new-password" placeholder="Passwort (mind. 8 Zeichen)" required>
@@ -592,7 +588,7 @@ function renderTag(){
       ${FLOWS.map(([v,l]) => `<button class="chip ${e.flow===v?'on':''}" data-flow="${v}">${l}</button>`).join('')}
     </div></div>
     <div class="card"><h3>Symptome <span class="hint">mehrmals tippen: leicht → mittel → stark</span></h3><div class="chips">
-      ${allSymptoms().map(s => { const lv = e.sym[s]||0; return `<button class="chip lv${lv}" data-sym="${esc(s)}">${esc(s)}${lv?` <span class="lv">${LV[lv]}</span>`:''}</button>`; }).join('')}
+      ${allSymptoms(e).map(s => { const lv = e.sym[s]||0; return `<button class="chip lv${lv}" data-sym="${esc(s)}">${esc(s)}${lv?` <span class="lv">${LV[lv]}</span>`:''}</button>`; }).join('')}
       <button class="chip add" data-act="addsym">+ Eigenes</button>
     </div></div>
     <div class="card"><h3>Stimmung</h3><div class="chips">
@@ -605,9 +601,6 @@ function renderTag(){
       ${SLEEPQ.slice(1).map((l,i) => `<button class="chip ${e.sleepQ===i+1?'on':''}" data-sq="${i+1}">${l}</button>`).join('')}
       </div>
       <div class="inline"><input type="text" inputmode="decimal" id="sleepH" placeholder="z. B. 7,5" value="${esc(String(e.sleepH).replace('.',','))}"><span>Stunden</span></div>
-    </div>
-    <div class="card"><h3>Schmerzen <span class="hint">0 = keine, 10 = unerträglich</span></h3>
-      <div class="scale">${Array.from({length:11}, (_,i) => `<button class="chip ${e.pain===i?'on':''}" data-pain="${i}" aria-label="Schmerz ${i}">${i}</button>`).join('')}</div>
     </div>
     <div class="card"><h3>Bewegung</h3><div class="chips">
       ${allMoves(e).map(m => `<button class="chip ${e.move.includes(m)?'on':''}" data-move="${esc(m)}">${esc(m)}</button>`).join('')}
@@ -685,18 +678,16 @@ function renderAus(){
   const avgOf = (arr) => arr.length ? mean(arr) : null;
   const sleepH = last.map(e => num(e.sleepH)).filter(n => n !== null && n > 0 && n <= 24);
   const energy = last.map(e => e.energy).filter(Boolean);
-  const pains = last.map(e => e.pain).filter(p => typeof p === 'number');
   const activeDays = last.filter(e => (e.move||[]).length || num(e.moveMin) > 0).length;
   const minutes = last.reduce((sum,e) => sum + (num(e.moveMin) || 0), 0);
   const medCount = {};
   for (const e of last) for (const m of e.meds||[]) medCount[m] = (medCount[m]||0) + 1;
-  const sAvg = avgOf(sleepH), eAvg = avgOf(energy), pAvg = avgOf(pains);
+  const sAvg = avgOf(sleepH), eAvg = avgOf(energy);
   const health = `
     <div class="card"><h3>Gesundheit <span class="hint">letzte 30 Tage</span></h3>
-      <div class="stats two" style="margin:0">
+      <div class="stats" style="margin:0">
         <div class="stat"><b>${sAvg!==null?deNum(sAvg)+' h':'–'}</b><span>Ø Schlaf${sleepH.length?' ('+sleepH.length+' Nächte)':''}</span></div>
         <div class="stat"><b>${eAvg!==null?deNum(eAvg)+' / 5':'–'}</b><span>Ø Energie</span></div>
-        <div class="stat"><b>${pains.filter(p=>p>0).length}</b><span>Tage mit Schmerzen${pAvg!==null?' · Ø '+deNum(pAvg):''}</span></div>
         <div class="stat"><b>${activeDays}</b><span>aktive Tage${minutes?' · '+deNum(minutes,0)+' Min.':''}</span></div>
       </div>
     </div>
@@ -759,7 +750,7 @@ async function renderMehr(){
     <div class="card set"><h3>Datenschutz</h3>
       <p class="muted small" style="margin:0">Diese App hat keinen Server, keine Analyse und kein Tracking. Netzwerkverbindungen sind per Content-Security-Policy gesperrt. Deine Einträge liegen verschlüsselt (AES-256) nur im Speicher dieses Browsers.</p>
     </div>
-    <p class="muted small" style="text-align:center">Healthy · Version ${APP_VERSION}</p>
+    <p class="muted small" style="text-align:center">Lebenszyklus · Version ${APP_VERSION}</p>
     <button class="btn danger full" data-act="wipe">Alle Daten auf diesem Gerät löschen</button>
   `;
 }
@@ -768,11 +759,11 @@ async function renderMehr(){
 async function exportBackup(){
   await saveNow();
   const blob = await encryptJSON(S.key, S.salt, S.data);
-  const name = `healthy-backup-${today()}.json`;
-  const content = JSON.stringify({ app:'healthy', ...blob });
+  const name = `lebenszyklus-backup-${today()}.json`;
+  const content = JSON.stringify({ app:'lebenszyklus', ...blob });
   const file = new File([content], name, { type:'application/json' });
   if (isIOS() && navigator.canShare && navigator.canShare({ files:[file] })){
-    try { await navigator.share({ files:[file], title:'Healthy-Backup' }); return; }
+    try { await navigator.share({ files:[file], title:'Lebenszyklus-Backup' }); return; }
     catch(e){ if (e.name === 'AbortError') return; }
   }
   const url = URL.createObjectURL(file);
@@ -846,7 +837,6 @@ $('#app').addEventListener('click', async ev => {
   }
   if (ds.energy){ const e = getEntry(S.date), v = +ds.energy; setEntry(S.date, { energy: e.energy === v ? 0 : v }); return renderTag(); }
   if (ds.sq){ const e = getEntry(S.date), v = +ds.sq; setEntry(S.date, { sleepQ: e.sleepQ === v ? 0 : v }); return renderTag(); }
-  if ('pain' in ds){ const e = getEntry(S.date), v = +ds.pain; setEntry(S.date, { pain: e.pain === v ? '' : v }); return renderTag(); }
   if (ds.move){ const e = getEntry(S.date); setEntry(S.date, { move: e.move.includes(ds.move) ? e.move.filter(x=>x!==ds.move) : [...e.move, ds.move] }); return renderTag(); }
   if (ds.med){ const e = getEntry(S.date); setEntry(S.date, { meds: e.meds.includes(ds.med) ? e.meds.filter(x=>x!==ds.med) : [...e.meds, ds.med] }); return renderTag(); }
   if (ds.dellist){
